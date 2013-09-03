@@ -234,7 +234,7 @@
 }
 
 #pragma mark - Delegate
-- (void)UzysSMMenuItemDidAction:(UzysSMMenuItemView *)itemView {
+- (void)uzysSMMenuItemDidAction:(UzysSMMenuItemView *)itemView {
     [self.itemViews removeObject:itemView];
     [self.itemViews insertObject:itemView atIndex:0];
     [self toggleMenu];

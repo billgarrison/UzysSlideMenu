@@ -67,8 +67,8 @@
 - (void)performAssociatedAction {
     if (self.item.block) {
         self.item.block(self.item);
-        if([self.delegate respondsToSelector:@selector(UzysSMMenuItemDidAction:)] && self.delegate) {
-            [self.delegate UzysSMMenuItemDidAction:self];
+        if([self.delegate respondsToSelector:@selector(uzysSMMenuItemDidAction:)] && self.delegate) {
+            [self.delegate uzysSMMenuItemDidAction:self];
         }
     }
 }
