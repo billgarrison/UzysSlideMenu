@@ -24,13 +24,7 @@
 - (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event{}
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
     //Add something to make some highlighted effect
-    if (_item.block) {
-        if([self.delegate respondsToSelector:@selector(UzysSMMenuItemDidAction:)] && self.delegate)
-        {
-            [self.delegate UzysSMMenuItemDidAction:self];
-        }
-        _item.block(_item);
-    }
+    [self performAssociatedAction];
 }
 
 -(void)setItem:(UzysSMMenuItem *)item {
@@ -64,14 +58,19 @@
 
 - (void)gestureTapped:(UIGestureRecognizer *)sender{
     if (sender.state == UIGestureRecognizerStateEnded) {
-        NSLog(@"tapped");
-        if (_item.block) {
-            if([self.delegate respondsToSelector:@selector(UzysSMMenuItemDidAction:)] && self.delegate)
-            {
-                [self.delegate UzysSMMenuItemDidAction:self];
-            }
-            _item.block(_item);
+        [self performAssociatedAction];
+    }
+}
+
+#pragma mark - Private Methods
+
+- (void)performAssociatedAction {
+    if (self.item.block) {
+        self.item.block(self.item);
+        if([self.delegate respondsToSelector:@selector(UzysSMMenuItemDidAction:)] && self.delegate) {
+            [self.delegate UzysSMMenuItemDidAction:self];
         }
     }
 }
+
 @end
