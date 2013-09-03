@@ -10,8 +10,7 @@
 
 @implementation UzysSMMenuItemView
 
-- (id)initWithFrame:(CGRect)frame
-{
+- (id)initWithFrame:(CGRect)frame {
     self = [super initWithFrame:frame];
     if (self) {
         // Initialization code
@@ -20,22 +19,10 @@
     return self;
 }
 
-- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
-{
-    //Add something to make some highlighted effect
-}
-- (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
-{
-
-}
-
-- (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event
-{
-    //Add something to make some highlighted effect
-}
-
-- (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
-{
+- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {}
+- (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event {}
+- (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event{}
+- (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
     //Add something to make some highlighted effect
     if (_item.block) {
         
@@ -47,8 +34,7 @@
     }
 }
 
--(void)setItem:(UzysSMMenuItem *)item
-{
+-(void)setItem:(UzysSMMenuItem *)item {
     [_item release];
     _item = [item ah_retain];
     _imageView.image = item.image;
@@ -66,8 +52,7 @@
 }
 
 #pragma mark - using gestureRecognizer
--(void)awakeFromNib
-{
+-(void)awakeFromNib {
     [super awakeFromNib];
     UITapGestureRecognizer *tapGesture;
     tapGesture = [[[UITapGestureRecognizer alloc] initWithTarget:self
