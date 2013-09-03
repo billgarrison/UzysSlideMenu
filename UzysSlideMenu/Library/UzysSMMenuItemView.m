@@ -25,7 +25,6 @@
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
     //Add something to make some highlighted effect
     if (_item.block) {
-        
         if([self.delegate respondsToSelector:@selector(UzysSMMenuItemDidAction:)] && self.delegate)
         {
             [self.delegate UzysSMMenuItemDidAction:self];

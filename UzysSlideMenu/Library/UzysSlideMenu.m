@@ -7,12 +7,10 @@
 //
 
 #import "UzysSlideMenu.h"
-
 @interface UzysSlideMenu()
-
-@property (nonatomic,strong) UIView *backgroundView;
+@property (nonatomic,strong) UIScrollView *scrollView;
 @property (nonatomic,strong) NSMutableArray *itemViews;
-@property (nonatomic, assign, readwrite) UzysSMState state;
+@property (nonatomic,assign) UzysSMState state;
 
 -(void)setupLayout;
 
@@ -28,7 +26,6 @@
         self.pItems = items;
         self.itemViews = [NSMutableArray array];
         self.state = STATE_ICON_MENU;
-        
         [self setupLayout];
         [self showIconMenu:NO];
     }
@@ -36,7 +33,7 @@
 }
 
 - (void)dealloc {
-    [_backgroundView release];
+    [self.scrollView release];
     [_itemViews release];
     [_pItems release];
     [super ah_dealloc];
@@ -46,7 +43,17 @@
     UzysSMMenuItemView *itemView = [[[NSBundle mainBundle] loadNibNamed:@"UzysSMMenuItemView" owner:self options:nil] lastObject];
     CGFloat menuHeight =itemView.bounds.size.height * [_pItems count];
     CGFloat menuWidth = itemView.bounds.size.width;
-    [self setFrame:CGRectMake(0, 0, menuWidth, menuHeight)];
+    [self setFrame:CGRectMake(0, 0, menuWidth, [UIScreen mainScreen].applicationFrame.size.height)];
+    
+    
+    _scrollView = [[UIScrollView alloc] initWithFrame:self.bounds];
+    _scrollView.backgroundColor = [UIColor clearColor];
+    _scrollView.bounces = NO;
+    _scrollView.showsVerticalScrollIndicator = NO;
+    _scrollView.showsHorizontalScrollIndicator = NO;
+    _scrollView.contentSize = CGSizeMake(menuWidth, menuHeight);
+    [self addSubview:_scrollView];
+    
 
     [self.pItems enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
         
@@ -61,8 +68,9 @@
         itemView.userInteractionEnabled = YES;
         itemView.tag = itemView.item.tag;
         itemView.delegate = self;
-        [self addSubview:itemView];
-        [self sendSubviewToBack:itemView];
+
+        [self.scrollView addSubview:itemView];
+        [self.scrollView sendSubviewToBack:itemView];
         [self.itemViews addObject:itemView];
         
     }];
@@ -114,8 +122,10 @@
 #pragma mark - MenuState
 
 -(void)showIconMenu:(BOOL)animation {
-    void (^showIconMenuBlock)() = ^void() {
-        [self.itemViews enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+    ah__block typeof(self) blockSelf = self;
+    void(^itemViewsSettingBlock)(void) = ^{
+        [blockSelf.itemViews enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+            
             UzysSMMenuItemView *itemView = obj;
             itemView.frame = CGRectMake(0, 0, itemView.bounds.size.width, itemView.bounds.size.height);
 
@@ -131,24 +141,28 @@
                 itemView.seperatorView.alpha = 1;
                 itemView.alpha = 0;
             }
+            blockSelf.scrollView.contentOffset = CGPointZero;
         }];
     };
 
     if(animation) {
         [UIView animateWithDuration:0.3 delay:0 options:UIViewAnimationOptionBeginFromCurrentState|UIViewAnimationOptionTransitionCrossDissolve|UIViewAnimationOptionCurveEaseOut|UIViewAnimationOptionAllowAnimatedContent animations:^{
-            showIconMenuBlock();
+            itemViewsSettingBlock();
         } completion:^(BOOL finished) {
             self.state = STATE_ICON_MENU;
         }];
     } else {
-        showIconMenuBlock();
+        itemViewsSettingBlock();
         self.state = STATE_ICON_MENU;
     }
 }
 
 -(void)showMainMenu:(BOOL)animation {
-    void (^showMainMenuBlock)() = ^void() {
-        [self.itemViews enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+    ah__block typeof(self) blockSelf = self;
+    void(^itemViewsSettingBlock)(void) = ^{
+        blockSelf.scrollView.contentOffset = CGPointZero;
+        [blockSelf.itemViews enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+            
             UzysSMMenuItemView *itemView = obj;
             itemView.frame = CGRectMake(0, 0, itemView.bounds.size.width, itemView.bounds.size.height);
 
@@ -166,16 +180,17 @@
                 itemView.backgroundView.alpha = 0.3;
             }
         }];
-    };
 
+    };
+    
     if(animation) {
         [UIView animateWithDuration:0.3 delay:0 options:UIViewAnimationOptionBeginFromCurrentState|UIViewAnimationOptionTransitionCrossDissolve|UIViewAnimationOptionCurveEaseOut|UIViewAnimationOptionAllowAnimatedContent animations:^{
-            showMainMenuBlock();
+            itemViewsSettingBlock();
         } completion:^(BOOL finished) {
             self.state = STATE_MAIN_MENU;
         }];
     } else {
-        showMainMenuBlock();
+        itemViewsSettingBlock();        
         self.state = STATE_MAIN_MENU;
     }
 }
@@ -183,6 +198,7 @@
 -(void)showFullMenu:(BOOL)animation {
     if(animation) {
         [UIView animateWithDuration:0.1 delay:0 options:UIViewAnimationOptionBeginFromCurrentState|UIViewAnimationOptionTransitionCrossDissolve|UIViewAnimationOptionCurveEaseIn animations:^{
+            self.scrollView.contentOffset = CGPointZero;
             [self.itemViews enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
                 UzysSMMenuItemView *itemView = obj;
                 itemView.targetFrame = CGRectMake(0, itemView.bounds.size.height*idx, itemView.bounds.size.width, itemView.bounds.size.height);
@@ -203,6 +219,7 @@
             }];
         }];
     } else {
+		self.scrollView.contentOffset = CGPointZero;
         [self.itemViews enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
             UzysSMMenuItemView *itemView = obj;
             itemView.targetFrame = CGRectMake(0, itemView.bounds.size.height*idx, itemView.bounds.size.width, itemView.bounds.size.height);
@@ -229,9 +246,15 @@
     return [self convertRect:itemView.imageView.frame toView:view];
 }
 
--(UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event {
-    if(self.state == STATE_FULL_MENU) {
-        if(CGRectContainsPoint(self.frame, point)) {
+-(UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event
+{
+    if(self.state == STATE_FULL_MENU)
+    {
+        if(CGRectContainsPoint(CGRectMake(self.scrollView.frame.origin.x,
+                                          self.scrollView.frame.origin.y,
+                                          self.scrollView.contentSize.width,
+                                          self.scrollView.contentSize.height), point))
+        {
             return [super hitTest:point withEvent:event];
         } else {
             return nil;
